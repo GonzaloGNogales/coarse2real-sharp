@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="C2R#: pair-free coarse-to-real video generation trained with real-to-coarse image supervision. Video results, comparisons and method overview.">
+  <title>C2R# · Pair-Free Coarse-to-Real Video Generation via Real-to-Coarse Image Supervision</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2316181d'/%3E%3Cpath d='M12 8l-2 16M20 8l-2 16M7.5 13h17M7 19h17' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#abstract">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-row">
+      <a href="#top" class="brand" aria-label="Back to top">C2R#</a>
+      <label class="autoplay-switch">
+        <input type="checkbox" id="autoplay-toggle" checked>
+        <span class="switch" aria-hidden="true"></span>
+        <span>Autoplay videos</span>
+      </label>
+    </div>
+    <nav class="topnav" aria-label="Sections">
+      <a href="#abstract">Abstract</a>
+      <a href="#method">Method</a>
+      <a href="#r2c-training">DINO-R2C training data</a>
+      <a href="#r2c-videos">DINO-R2C videos</a>
+      <a href="#results">C2R# results</a>
+      <a href="#comparisons">Comparisons</a>
+      <a href="#seedance">Seedance 2.5</a>
+      <a href="#reference">Reference image</a>
+      <a href="#ablation">Re-encoding ablation</a>
+    </nav>
+  </header>
+
+  <div id="top"></div>
+  <section class="hero container" aria-labelledby="paper-title">
+    <h1 id="paper-title"><span class="nobr">Pair-Free</span> <span class="nobr">Coarse-to-Real</span> Video Generation via <span class="nobr">Real-to-Coarse</span> Image Supervision</h1>
+    <div id="authors" class="authors">
+      <p class="author-names"><span class="author"><a href="https://gonzalogn.com/" target="_blank" rel="noopener">Gonzalo G&oacute;mez-Nogales</a><sup>1,2</sup></span><span class="author"><a href="https://daohanlu.github.io/" target="_blank" rel="noopener">Daohan Lu</a><sup>1,3</sup></span><span class="author"><a href="https://payeah.net/" target="_blank" rel="noopener">Peiye Zhuang</a><sup>1</sup></span><span class="author"><a href="https://tinghuiz.github.io/" target="_blank" rel="noopener">Tinghui Zhou</a><sup>1</sup></span><span class="author"><a href="https://zhouyisjtu.github.io/" target="_blank" rel="noopener">Yi Zhou</a><sup>1</sup></span></p>
+      <p class="affiliations"><span><sup>1</sup>Roblox</span><span><sup>2</sup>Universidad Rey Juan Carlos</span><span><sup>3</sup>New York University</span></p>
+    </div>
+    <div id="resource-links" class="resource-links"></div>
+  </section>
+
+  <figure class="teaser container">
+    <div class="teaser-frame">
+      <video id="teaser-video" src="media/teaser-09eeb26f8cbc.mp4" poster="media/teaser-09eeb26f8cbc.webp" muted loop playsinline preload="metadata" controls aria-label="Teaser: input videos and C2R# results for Game, Blockout and Anime inputs"></video>
+    </div>
+    <figcaption>Input videos and C2R# results. Rows from top to bottom: Game, Blockout and Anime inputs.</figcaption>
+  </figure>
+
+  <div class="layout container">
+    <aside class="sidebar" aria-label="Contents">
+      <p class="sidebar-title">Contents</p>
+      <ol class="toc" id="toc">
+        <li><a href="#abstract">Abstract</a></li>
+        <li><a href="#method">Method</a></li>
+        <li><a href="#r2c-training">DINO-R2C training data</a></li>
+        <li><a href="#r2c-videos">DINO-R2C video results</a></li>
+        <li><a href="#results">C2R# results</a>
+          <ol><li><a href="#results-game">Game</a></li><li><a href="#results-blockout">Blockout</a></li><li><a href="#results-anime">Anime</a></li></ol>
+        </li>
+        <li><a href="#comparisons">Comparisons</a>
+          <ol><li><a href="#comparisons-game">Game</a></li><li><a href="#comparisons-blockout">Blockout</a></li><li><a href="#comparisons-anime">Anime</a></li></ol>
+        </li>
+        <li><a href="#seedance">Seedance 2.5</a>
+          <ol><li><a href="#seedance-game">Game</a></li><li><a href="#seedance-blockout">Blockout</a></li><li><a href="#seedance-anime">Anime</a></li></ol>
+        </li>
+        <li><a href="#reference">Reference image</a>
+          <ol><li><a href="#reference-game">Game</a></li><li><a href="#reference-blockout">Blockout</a></li><li><a href="#reference-anime">Anime</a></li></ol>
+        </li>
+        <li><a href="#ablation">Re-encoding ablation</a></li>
+      </ol>
+    </aside>
+
+    <main id="content">
+      <section class="section" id="abstract" data-spy>
+        <h2>Abstract</h2>
+        <div class="prose">
+          <p>Coarse-to-real (C2R) video generation converts coarse animation, simulation, or game-rendered videos into photorealistic videos while preserving scene layout, camera motion, and dynamics. Training such models requires aligned (coarse, realistic) video pairs, which are expensive to create and confine prior systems to narrow synthetic domains.</p>
+          <p>We exploit a simple asymmetry: paired videos are hard to obtain, but paired real-to-coarse images are easy to construct with existing image editing and reconstruction tools. From such image pairs we train the DINO-R2C model, which transfers realistic images to coarse images in DINO feature space, and apply it to every frame of ordinary real videos to synthesize pseudo-coarse videos. The C2R# model then learns to generate each real video from its pseudo-coarse counterpart, without any authored (coarse, realistic) video pairs. At inference, the DINO-R2C model is discarded and actual coarse videos drive the C2R# model directly. Training thus scales with real-video corpora rather than with paired synthetic videos.</p>
+        </div>
+      </section>
+
+      <section class="section" id="method" data-spy>
+        <h2>Method</h2>
+        <p class="intro">C2R# is trained without paired coarse and real videos. First, the DINO-R2C model learns from paired realistic and coarse images and is then applied to each frame of real videos, turning them into pseudo-coarse videos. The C2R# model is trained on these pseudo-paired videos: trainable control and fusion adapters feed the pseudo-coarse video into a frozen Wan&nbsp;2.2 backbone, which learns to produce the original real video. At inference, an actual coarse video conditions C2R# directly and DINO-R2C is no longer needed. Click the figure to enlarge it.</p>
+        <figure class="diagram">
+          <div class="diagram-head">
+            <h3>Overview of the DINO-R2C and C2R# models</h3>
+          </div>
+          <button class="diagram-button" data-image="media/pipeline-merged-v3.webp" data-title="Overview of the DINO-R2C and C2R# models">
+            <img src="media/pipeline-merged-v3.webp" width="3000" height="1493" loading="lazy" alt="Top: the DINO-R2C bridge is trained on paired realistic and coarse images with feature and pixel reconstruction losses, then applied to each frame of a source video to synthesize pseudo-coarse videos in four styles (Coarser Geom., Coarse Geom., Coarser Anime, Coarse Anime). Bottom left: C2R# training, where the pseudo-coarse video is encoded by the frozen DINOv3 encoder and passed through trainable control and fusion adapters into a frozen Wan 2.2 model, with the source real video as the target. Bottom right: at inference, a coarse video and a text prompt condition the same model in a denoising loop.">
+          </button>
+          <figcaption><strong>Top:</strong> The DINO-R2C model is trained from paired realistic and coarse images using feature reconstruction and pixel-space reconstruction losses. Once trained, it is applied to each frame of real videos to synthesize pseudo-coarse videos. <strong>Bottom left:</strong> The C2R# model is trained on these pseudo-paired videos. The pseudo-coarse video is encoded by the frozen DINO encoder <em>E</em> and injected into the frozen Wan2.2 backbone through trainable control and fusion adapters, while the original real video provides the training target. <strong>Bottom right:</strong> at inference, an actual coarse video is encoded directly by <em>E</em> and used to condition the same C2R# model; the DINO-R2C model is no longer required. Orange modules are trainable, blue modules are frozen, gray boxes are tensors, and red boxes denote training losses.</figcaption>
+        </figure>
+      </section>
+
+      <section class="section" id="r2c-training" data-spy>
+        <div class="section-head"><h2>DINO-R2C training data</h2><p class="now" aria-live="polite"></p></div>
+        <p class="intro">Ten training examples. Each shows a real image (left) and its four coarse targets. Click an image to enlarge it.</p>
+        <div id="training-gallery"></div>
+      </section>
+
+      <section class="section" id="r2c-videos" data-spy>
+        <div class="section-head"><h2>DINO-R2C video results</h2><p class="now" aria-live="polite"></p></div>
+        <p class="intro">DINO-R2C applied frame by frame to twenty real videos. Each video shows the real video followed by the four coarse styles.</p>
+        <div id="r2c-gallery"></div>
+      </section>
+
+      <section class="section" id="results" data-spy>
+        <div class="section-head"><h2>C2R# results</h2><p class="now" aria-live="polite"></p></div>
+        <p class="intro">Twenty examples for each input type. In every video the input is on the left and the C2R# result on the right.</p>
+        <div id="results-gallery"></div>
+      </section>
+
+      <section class="section" id="comparisons" data-spy>
+        <div class="section-head"><h2>Comparisons</h2><p class="now" aria-live="polite"></p></div>
+        <p class="intro">Five examples for each input type, generated from the same input and prompt. Top row: input, C2R# (ours), C2R Original and Editto Global. Bottom row: Editto Sim2Real, Editto Sim2Real (rep.), Wan&nbsp;2.2 VACE and Wan&nbsp;2.2 VACE (rep.). "(rep.)" marks our reproductions: the same baselines fine-tuned on our pseudo-paired videos.</p>
+        <div id="comparisons-gallery"></div>
+        <p class="analysis">In these examples, C2R# (ours) produces more photorealistic results than the baselines while better preserving the structure and motion of the input. C2R Original often changes the scene, Editto Global restyles colors and lighting, Editto Sim2Real often produces misaligned, overly bright outputs that are close to white, and Wan&nbsp;2.2 VACE tends to keep the input's style, which makes larger domain jumps hard, so it struggles more when the input is very coarse. Training Editto Sim2Real and Wan&nbsp;2.2 VACE on our pseudo-paired videos (rep.) improves their results in several cases.</p>
+      </section>
+
+      <section class="section" id="seedance" data-spy>
+        <div class="section-head"><h2>Comparison with Seedance 2.5</h2><p class="now" aria-live="polite"></p></div>
+        <p class="intro">Two examples for each input type, generated from the same input and prompt. Left: input. Middle: C2R# (ours). Right: Seedance&nbsp;2.5.</p>
+        <div id="seedance-gallery"></div>
+      </section>
+
+      <section class="section" id="reference" data-spy>
+        <div class="section-head"><h2>Reference-image conditioning</h2><p class="now" aria-live="polite"></p></div>
+        <p class="intro">A separate version of C2R# also takes a reference image to guide appearance, in addition to the input video and prompt. A frozen Wan VAE encodes the reference image into extra tokens, and rank-16 attention LoRA adds the guidance while keeping the control and fusion adapters. Each example shows the reference image, the input and the result.</p>
+        <div id="reference-gallery"></div>
+      </section>
+
+      <section class="section" id="ablation" data-spy>
+        <h2>Decoding and re-encoding ablation</h2>
+        <p class="intro">The features predicted by DINO-R2C already live in DINO space and could condition C2R# directly. However, they keep hidden cues of the real input video that are absent when an actual coarse video is encoded at inference, a mismatch between training and inference. C2R# therefore decodes each prediction to coarse pixels with the frozen RAE decoder and re-encodes those pixels with the same frozen encoder used at inference. Below, for the same input and prompt: C2R#, and a variant trained without re-encoding (C2R# w/o Re-encode), which conditions directly on the predicted features and shows visible artifacts.</p>
+        <div id="ablation-gallery"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="footer container">
+    <span>C2R# · Pair-Free Coarse-to-Real Video Generation via Real-to-Coarse Image Supervision</span>
+    <a href="#top">Back to top</a>
+  </footer>
+
+  <dialog id="viewer" aria-labelledby="viewer-title">
+    <div class="viewer-head">
+      <h2 id="viewer-title"></h2>
+      <button type="button" class="viewer-close" aria-label="Close">×</button>
+    </div>
+    <div id="viewer-body"></div>
+  </dialog>
+
+  <script src="site-data.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
