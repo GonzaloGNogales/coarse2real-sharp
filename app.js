@@ -250,17 +250,25 @@ function onScrollEnd(fn) {
   else { addEventListener('scroll', reset, {passive:true}); reset(); }
   safety = setTimeout(done, 4000);
 }
+// Each jump gets a number; a newer click, or the user scrolling by hand, makes the older jump's
+// pending checks stale so they can no longer pull the page back to the old target.
+let jumpSeq = 0;
+function endJump() { jumping = false; dispatchEvent(new Event('jumpend')); }
+function cancelJump() { if (jumping) { jumpSeq++; endJump(); } }
+['wheel', 'touchstart', 'keydown'].forEach(type => addEventListener(type, cancelJump, {passive:true}));
 function jumpTo(el) {
+  const seq = ++jumpSeq;
   const nav = $('.topnav');
   nav?.scrollTo({left: nav.scrollLeft, behavior: 'instant'});
   const behavior = prefersReducedMotion ? 'instant' : 'smooth';
   const offset = () => el.getBoundingClientRect().top - (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0);
   const atEnd = () => innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
-  const finish = () => { jumping = false; dispatchEvent(new Event('jumpend')); };
+  const finish = () => { if (seq === jumpSeq) endJump(); };
   if (Math.abs(offset()) <= 4) { finish(); return; }
   jumping = true;
   let corrections = 0;
   const check = () => {
+    if (seq !== jumpSeq) return;
     // Re-issue the scroll if it was interrupted or the layout shifted on the way.
     if (Math.abs(offset()) > 4 && !atEnd() && corrections++ < 2) { el.scrollIntoView({behavior}); onScrollEnd(check); }
     else finish();
@@ -278,8 +286,12 @@ document.addEventListener('click', event => {
   event.preventDefault();
   if (target) applyHash(hash, {scroll:false});
   history.replaceState(null, '', hash);
-  // Start one frame later so a gallery that just switched tabs has its final layout.
-  requestAnimationFrame(() => jumpTo(el));
+  // Start one frame later so a gallery that just switched tabs has its final layout; the timer
+  // covers pages that are not being painted (frames paused), whichever comes first.
+  let started = false;
+  const go = () => { if (!started) { started = true; jumpTo(el); } };
+  requestAnimationFrame(go);
+  setTimeout(go, 50);
 });
 addEventListener('hashchange', () => applyHash(location.hash));
 
@@ -375,7 +387,9 @@ function setupScrollSpy() {
   };
   function update() {
     ticking = false;
-    const line = innerHeight * 0.3;
+    // A section counts as current once its top passes 30% of the viewport, but never a line above
+    // where a jump parks it (just below the sticky bar), or short landscape screens lag one behind.
+    const line = Math.max(innerHeight * 0.3, (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0) + 8);
     let active = null;
     for (const target of targets) if (target.getBoundingClientRect().top <= line) active = target;
     if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) active = targets[targets.length - 1];
