@@ -358,7 +358,8 @@ function setupScrollSpy() {
   const navLinks = $$('.topnav a');
   const nav = $('.topnav');
   let ticking = false;
-  // A subsection (data-parent) is a leaf in the contents list and keeps its parent highlighted.
+  // A subsection (data-parent) keeps its parent highlighted; like any section with several
+  // groups, it is marked as a parent itself while its current group's link is active.
   const parentOf = id => (id && document.getElementById(id)?.dataset.parent) || null;
   refreshToc = () => {
     const viewer = viewers.get(currentSection);
@@ -367,7 +368,7 @@ function setupScrollSpy() {
       const href = link.getAttribute('href').slice(1);
       const sub = parseHash('#' + href);
       const isSub = Boolean(sub?.group);
-      const multi = viewer?.groups.length > 1 && !parent;
+      const multi = viewer?.groups.length > 1;
       link.classList.toggle('active', isSub ? sub.section === currentSection && viewer?.group === sub.group : href === currentSection && !multi);
       link.classList.toggle('active-parent', !isSub && ((href === currentSection && multi) || href === parent));
     });

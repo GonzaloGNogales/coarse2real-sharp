@@ -58,11 +58,19 @@
         <li><a href="#r2c-training">DINO-R2C training data</a></li>
         <li><a href="#r2c-videos">DINO-R2C video results</a></li>
         <li><a href="#results">C2R# results</a>
-          <ol><li><a href="#results-game">Game</a></li><li><a href="#results-blockout">Blockout</a></li><li><a href="#results-anime">Anime</a></li><li><a href="#reference">Reference image</a></li></ol>
+          <ol><li><a href="#results-game">Game</a></li><li><a href="#results-blockout">Blockout</a></li><li><a href="#results-anime">Anime</a></li>
+            <li><a href="#reference">C2R#-I2V results</a>
+              <ol><li><a href="#reference-game">Game</a></li><li><a href="#reference-blockout">Blockout</a></li><li><a href="#reference-anime">Anime</a></li></ol>
+            </li>
+          </ol>
         </li>
         <li><a href="#ablation">Re-encoding ablation</a></li>
         <li><a href="#comparisons">Comparisons</a>
-          <ol><li><a href="#comparisons-game">Game</a></li><li><a href="#comparisons-blockout">Blockout</a></li><li><a href="#comparisons-anime">Anime</a></li><li><a href="#seedance">Seedance 2.5</a></li></ol>
+          <ol><li><a href="#comparisons-game">Game</a></li><li><a href="#comparisons-blockout">Blockout</a></li><li><a href="#comparisons-anime">Anime</a></li>
+            <li><a href="#seedance">Seedance 2.5</a>
+              <ol><li><a href="#seedance-game">Game</a></li><li><a href="#seedance-blockout">Blockout</a></li><li><a href="#seedance-anime">Anime</a></li></ol>
+            </li>
+          </ol>
         </li>
       </ol>
     </aside>
@@ -92,13 +100,13 @@
 
       <section class="section" id="r2c-training" data-spy>
         <div class="section-head"><h2>DINO-R2C training data</h2><p class="now" aria-live="polite"></p></div>
-        <p class="intro">Ten training examples. Each shows a real image (left) and its four coarse targets. Click an image to enlarge it.</p>
+        <p class="intro">Ten training examples. Each shows a photorealistic image (left) and its four coarse targets. Click an image to enlarge it.</p>
         <div id="training-gallery"></div>
       </section>
 
       <section class="section" id="r2c-videos" data-spy>
         <div class="section-head"><h2>DINO-R2C video results</h2><p class="now" aria-live="polite"></p></div>
-        <p class="intro">DINO-R2C applied frame by frame to twenty real videos. Each video shows the real video followed by the four coarse styles.</p>
+        <p class="intro">DINO-R2C applied frame by frame to twenty photorealistic videos. Each video shows the photorealistic input video followed by the four coarse styles.</p>
         <div id="r2c-gallery"></div>
       </section>
 
@@ -109,8 +117,8 @@
       </section>
 
       <section class="section subsection" id="reference" data-parent="results" data-spy>
-        <div class="section-head"><h3>Reference-image conditioning</h3><p class="now" aria-live="polite"></p></div>
-        <p class="intro">A separate version of C2R# also takes a reference image to guide appearance, in addition to the input video and prompt. A frozen Wan VAE encodes the reference image into extra tokens, and rank-16 attention LoRA adds the guidance while keeping the control and fusion adapters. Each example shows the reference image, the input and the result.</p>
+        <div class="section-head"><h3>C2R#-I2V results</h3><p class="now" aria-live="polite"></p></div>
+        <p class="intro">C2R#-I2V is a separate version of C2R# that also takes a reference image to guide appearance, in addition to the input video and prompt. A frozen Wan VAE encodes the reference image into extra tokens, and rank-16 attention LoRA adds the guidance while keeping the control and fusion adapters. Each example shows the reference image, the input and the result.</p>
         <div id="reference-gallery"></div>
       </section>
 
