@@ -60,7 +60,8 @@ p { margin: 0; }
 .author-names { font-size: 17px; color: var(--ink); }
 .author-names a { text-decoration: none; white-space: nowrap; }
 .author-names a:hover { color: var(--accent); }
-.author-names sup, .affiliations sup { font-size: 10px; color: var(--muted); margin-left: 1px; }
+.author-names sup, .affiliations sup, .author-note sup { font-size: 10px; color: var(--muted); margin-left: 1px; }
+.author-note sup { margin: 0 2px 0 0; }
 .author-names .author + .author::before { content: ", "; }
 .affiliations { font-size: 14px; color: var(--muted); margin-top: 6px; }
 .affiliations span + span::before { content: " · "; }

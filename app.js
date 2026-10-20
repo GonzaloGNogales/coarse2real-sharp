@@ -364,7 +364,9 @@ document.addEventListener('keydown', event => {
 function renderHeader() {
   document.title = `${config.method} · ${config.anonymous ? `Paper ID ${config.reviewId}` : config.title}`;
   if (!config.anonymous && config.authors?.length) {
-    $('#authors').innerHTML = `<p class="author-names">${config.authors.map(a => `<span class="author">${a.url ? `<a href="${escapeHTML(a.url)}" target="_blank" rel="noopener">${escapeHTML(a.name)}</a>` : escapeHTML(a.name)}<sup>${a.affiliations.join(',')}</sup></span>`).join('')}</p><p class="affiliations">${Object.entries(config.affiliations).map(([id, name]) => `<span><sup>${id}</sup>${escapeHTML(name)}</span>`).join('')}</p>`;
+    // An author's optional `mark` (e.g. a dagger) follows the affiliation numbers; authorNotes explain the marks.
+    const notes = (config.authorNotes ?? []).map(n => `<span><sup>${escapeHTML(n.mark)}</sup>${escapeHTML(n.text)}</span>`).join('');
+    $('#authors').innerHTML = `<p class="author-names">${config.authors.map(a => `<span class="author">${a.url ? `<a href="${escapeHTML(a.url)}" target="_blank" rel="noopener">${escapeHTML(a.name)}</a>` : escapeHTML(a.name)}<sup>${[...a.affiliations, ...(a.mark ? [escapeHTML(a.mark)] : [])].join(',')}</sup></span>`).join('')}</p><p class="affiliations">${Object.entries(config.affiliations).map(([id, name]) => `<span><sup>${id}</sup>${escapeHTML(name)}</span>`).join('')}</p>${notes ? `<p class="author-note">${notes}</p>` : ''}`;
     $$('.paper-id').forEach(node => node.remove());
   }
   // Links without a URL yet are shown as non-clickable "Coming soon" placeholders.
