@@ -26,10 +26,8 @@
       <a href="#r2c-training">DINO-R2C training data</a>
       <a href="#r2c-videos">DINO-R2C videos</a>
       <a href="#results">C2R# results</a>
-      <a href="#comparisons">Comparisons</a>
-      <a href="#seedance">Seedance 2.5</a>
-      <a href="#reference">Reference image</a>
       <a href="#ablation">Re-encoding ablation</a>
+      <a href="#comparisons">Comparisons</a>
     </nav>
   </header>
 
@@ -60,18 +58,12 @@
         <li><a href="#r2c-training">DINO-R2C training data</a></li>
         <li><a href="#r2c-videos">DINO-R2C video results</a></li>
         <li><a href="#results">C2R# results</a>
-          <ol><li><a href="#results-game">Game</a></li><li><a href="#results-blockout">Blockout</a></li><li><a href="#results-anime">Anime</a></li></ol>
-        </li>
-        <li><a href="#comparisons">Comparisons</a>
-          <ol><li><a href="#comparisons-game">Game</a></li><li><a href="#comparisons-blockout">Blockout</a></li><li><a href="#comparisons-anime">Anime</a></li></ol>
-        </li>
-        <li><a href="#seedance">Seedance 2.5</a>
-          <ol><li><a href="#seedance-game">Game</a></li><li><a href="#seedance-blockout">Blockout</a></li><li><a href="#seedance-anime">Anime</a></li></ol>
-        </li>
-        <li><a href="#reference">Reference image</a>
-          <ol><li><a href="#reference-game">Game</a></li><li><a href="#reference-blockout">Blockout</a></li><li><a href="#reference-anime">Anime</a></li></ol>
+          <ol><li><a href="#results-game">Game</a></li><li><a href="#results-blockout">Blockout</a></li><li><a href="#results-anime">Anime</a></li><li><a href="#reference">Reference image</a></li></ol>
         </li>
         <li><a href="#ablation">Re-encoding ablation</a></li>
+        <li><a href="#comparisons">Comparisons</a>
+          <ol><li><a href="#comparisons-game">Game</a></li><li><a href="#comparisons-blockout">Blockout</a></li><li><a href="#comparisons-anime">Anime</a></li><li><a href="#seedance">Seedance 2.5</a></li></ol>
+        </li>
       </ol>
     </aside>
 
@@ -116,21 +108,8 @@
         <div id="results-gallery"></div>
       </section>
 
-      <section class="section" id="comparisons" data-spy>
-        <div class="section-head"><h2>Comparisons</h2><p class="now" aria-live="polite"></p></div>
-        <p class="intro">Five examples for each input type, generated from the same input and prompt. Top row: input, C2R# (ours), C2R Original and Editto Global. Bottom row: Editto Sim2Real, Editto Sim2Real (rep.), Wan&nbsp;2.2 VACE and Wan&nbsp;2.2 VACE (rep.). "(rep.)" marks our reproductions: the same baselines fine-tuned on our pseudo-paired videos.</p>
-        <div id="comparisons-gallery"></div>
-        <p class="analysis">In these examples, C2R# (ours) produces more photorealistic results than the baselines while better preserving the structure and motion of the input. C2R Original often changes the scene, Editto Global restyles colors and lighting, Editto Sim2Real often produces misaligned, overly bright outputs that are close to white, and Wan&nbsp;2.2 VACE tends to keep the input's style, which makes larger domain jumps hard, so it struggles more when the input is very coarse. Training Editto Sim2Real and Wan&nbsp;2.2 VACE on our pseudo-paired videos (rep.) improves their results in several cases.</p>
-      </section>
-
-      <section class="section" id="seedance" data-spy>
-        <div class="section-head"><h2>Comparison with Seedance 2.5</h2><p class="now" aria-live="polite"></p></div>
-        <p class="intro">Two examples for each input type, generated from the same input and prompt. Left: input. Middle: C2R# (ours). Right: Seedance&nbsp;2.5.</p>
-        <div id="seedance-gallery"></div>
-      </section>
-
-      <section class="section" id="reference" data-spy>
-        <div class="section-head"><h2>Reference-image conditioning</h2><p class="now" aria-live="polite"></p></div>
+      <section class="section subsection" id="reference" data-parent="results" data-spy>
+        <div class="section-head"><h3>Reference-image conditioning</h3><p class="now" aria-live="polite"></p></div>
         <p class="intro">A separate version of C2R# also takes a reference image to guide appearance, in addition to the input video and prompt. A frozen Wan VAE encodes the reference image into extra tokens, and rank-16 attention LoRA adds the guidance while keeping the control and fusion adapters. Each example shows the reference image, the input and the result.</p>
         <div id="reference-gallery"></div>
       </section>
@@ -139,6 +118,19 @@
         <h2>Decoding and re-encoding ablation</h2>
         <p class="intro">The features predicted by DINO-R2C already live in DINO space and could condition C2R# directly. However, they keep hidden cues of the real input video that are absent when an actual coarse video is encoded at inference, a mismatch between training and inference. C2R# therefore decodes each prediction to coarse pixels with the frozen RAE decoder and re-encodes those pixels with the same frozen encoder used at inference. Below, for the same input and prompt: C2R#, and a variant trained without re-encoding (C2R# w/o Re-encode), which conditions directly on the predicted features and shows visible artifacts.</p>
         <div id="ablation-gallery"></div>
+      </section>
+
+      <section class="section" id="comparisons" data-spy>
+        <div class="section-head"><h2>Comparisons</h2><p class="now" aria-live="polite"></p></div>
+        <p class="intro">Five examples for each input type, generated from the same input and prompt. Top row: input, C2R# (ours), C2R Original and Editto Global. Bottom row: Editto Sim2Real, Editto Sim2Real (rep.), Wan&nbsp;2.2 VACE and Wan&nbsp;2.2 VACE (rep.). "(rep.)" marks our reproductions: the same baselines fine-tuned on our pseudo-paired videos.</p>
+        <div id="comparisons-gallery"></div>
+        <p class="analysis">In these examples, C2R# (ours) produces more photorealistic results than the baselines while better preserving the structure and motion of the input. C2R Original often changes the scene, Editto Global restyles colors and lighting, Editto Sim2Real often produces misaligned, overly bright outputs that are close to white, and Wan&nbsp;2.2 VACE tends to keep the input's style, which makes larger domain jumps hard, so it struggles more when the input is very coarse. Training Editto Sim2Real and Wan&nbsp;2.2 VACE on our pseudo-paired videos (rep.) improves their results in several cases.</p>
+      </section>
+
+      <section class="section subsection" id="seedance" data-parent="comparisons" data-spy>
+        <div class="section-head"><h3>Comparison with Seedance 2.5</h3><p class="now" aria-live="polite"></p></div>
+        <p class="intro">Two examples for each input type, generated from the same input and prompt. Left: input. Middle: C2R# (ours). Right: Seedance&nbsp;2.5.</p>
+        <div id="seedance-gallery"></div>
       </section>
 
     </main>

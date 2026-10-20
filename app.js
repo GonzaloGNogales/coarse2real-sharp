@@ -236,11 +236,50 @@ function applyHash(hash, {scroll = true, smooth = false} = {}) {
   if (scroll) document.getElementById(target.section).scrollIntoView({behavior: smooth && !prefersReducedMotion ? 'smooth' : 'instant'});
   return true;
 }
+// Scroll to a section from a link. Chrome runs one smooth scroll at a time, so any running top-bar
+// animation is stopped first; once the page settles, the position is re-checked because media that
+// loads during the scroll can shift the layout and leave the jump short.
+let jumping = false;
+// Calls fn once the page scroll has finished: the native 'scrollend' event where supported,
+// otherwise 150ms without scroll events. A safety timeout covers scrolls that never start.
+function onScrollEnd(fn) {
+  let timer, safety;
+  const done = () => { clearTimeout(timer); clearTimeout(safety); removeEventListener('scroll', reset); removeEventListener('scrollend', done); fn(); };
+  const reset = () => { clearTimeout(timer); timer = setTimeout(done, 150); };
+  if ('onscrollend' in window) addEventListener('scrollend', done, {once:true});
+  else { addEventListener('scroll', reset, {passive:true}); reset(); }
+  safety = setTimeout(done, 4000);
+}
+function jumpTo(el) {
+  const nav = $('.topnav');
+  nav?.scrollTo({left: nav.scrollLeft, behavior: 'instant'});
+  const behavior = prefersReducedMotion ? 'instant' : 'smooth';
+  const offset = () => el.getBoundingClientRect().top - (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0);
+  const atEnd = () => innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
+  const finish = () => { jumping = false; dispatchEvent(new Event('jumpend')); };
+  if (Math.abs(offset()) <= 4) { finish(); return; }
+  jumping = true;
+  let corrections = 0;
+  const check = () => {
+    // Re-issue the scroll if it was interrupted or the layout shifted on the way.
+    if (Math.abs(offset()) > 4 && !atEnd() && corrections++ < 2) { el.scrollIntoView({behavior}); onScrollEnd(check); }
+    else finish();
+  };
+  el.scrollIntoView({behavior});
+  onScrollEnd(check);
+}
 document.addEventListener('click', event => {
   const link = event.target.closest('a[href^="#"]');
-  if (!link || event.defaultPrevented || event.metaKey || event.ctrlKey) return;
+  if (!link || event.defaultPrevented || event.metaKey || event.ctrlKey || link.classList.contains('skip-link')) return;
   const hash = link.getAttribute('href');
-  if (parseHash(hash)?.group && applyHash(hash, {smooth:true})) { event.preventDefault(); history.replaceState(null, '', hash); }
+  const target = parseHash(hash);
+  const el = target ? document.getElementById(target.section) : hash.length > 1 && document.getElementById(decodeURIComponent(hash.slice(1)));
+  if (!el?.matches('[data-spy]')) return;
+  event.preventDefault();
+  if (target) applyHash(hash, {scroll:false});
+  history.replaceState(null, '', hash);
+  // Start one frame later so a gallery that just switched tabs has its final layout.
+  requestAnimationFrame(() => jumpTo(el));
 });
 addEventListener('hashchange', () => applyHash(location.hash));
 
@@ -319,15 +358,18 @@ function setupScrollSpy() {
   const navLinks = $$('.topnav a');
   const nav = $('.topnav');
   let ticking = false;
+  // A subsection (data-parent) is a leaf in the contents list and keeps its parent highlighted.
+  const parentOf = id => (id && document.getElementById(id)?.dataset.parent) || null;
   refreshToc = () => {
     const viewer = viewers.get(currentSection);
+    const parent = parentOf(currentSection);
     tocLinks.forEach(link => {
       const href = link.getAttribute('href').slice(1);
       const sub = parseHash('#' + href);
       const isSub = Boolean(sub?.group);
-      const multi = viewer?.groups.length > 1;
+      const multi = viewer?.groups.length > 1 && !parent;
       link.classList.toggle('active', isSub ? sub.section === currentSection && viewer?.group === sub.group : href === currentSection && !multi);
-      link.classList.toggle('active-parent', !isSub && href === currentSection && multi);
+      link.classList.toggle('active-parent', !isSub && ((href === currentSection && multi) || href === parent));
     });
   };
   function update() {
@@ -340,13 +382,26 @@ function setupScrollSpy() {
     if (id === currentSection) return;
     currentSection = id;
     refreshToc();
-    navLinks.forEach(link => {
-      const on = link.getAttribute('href').slice(1) === id;
-      link.classList.toggle('active', on);
-      if (on && nav.scrollWidth > nav.clientWidth) nav.scrollTo({left: link.offsetLeft - nav.clientWidth / 2 + link.clientWidth / 2, behavior: prefersReducedMotion ? 'auto' : 'smooth'});
-    });
+    navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href').slice(1) === (parentOf(id) ?? id)));
+    navNeedsCenter = true;
+    centerNavSoon();
   }
-  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, {passive:true});
+  // Center the active pill in the top bar only once the page has stopped scrolling: Chrome runs one
+  // smooth scroll at a time, so smooth-scrolling the bar mid-jump cancelled the page's own scroll
+  // and a tap on a far section stopped at the next one.
+  let centerTimer = 0, navNeedsCenter = false;
+  function centerNavSoon() {
+    if (!navNeedsCenter) return;
+    clearTimeout(centerTimer);
+    centerTimer = setTimeout(() => {
+      if (jumping) return; // re-run on 'jumpend'
+      navNeedsCenter = false;
+      const link = $('.topnav a.active');
+      if (link && nav.scrollWidth > nav.clientWidth) nav.scrollTo({left: link.offsetLeft - nav.clientWidth / 2 + link.clientWidth / 2, behavior: prefersReducedMotion ? 'auto' : 'smooth'});
+    }, 180);
+  }
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } centerNavSoon(); }, {passive:true});
+  addEventListener('jumpend', centerNavSoon);
   addEventListener('resize', update);
   update();
 }
