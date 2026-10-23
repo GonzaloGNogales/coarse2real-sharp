@@ -66,12 +66,21 @@ p { margin: 0; }
 .affiliations { font-size: 14px; color: var(--muted); margin-top: 6px; }
 .affiliations span + span::before { content: " · "; }
 .author-note { margin-top: 6px; font-size: 14px; color: var(--muted); }
-.resource-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 20px; }
+/* Resource buttons: available links are solid ink pills that turn accent green on hover; missing ones are muted placeholders. */
+.resource-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
 .resource-links:empty { display: none; }
-.resource-links a { font-size: 14px; text-decoration: none; padding: 7px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
-.resource-links a:hover { border-color: var(--ink-2); }
-.resource-links .soon { font-size: 14px; padding: 7px 16px; border: 1px dashed var(--line); border-radius: 999px; color: var(--muted); cursor: default; user-select: none; }
-.resource-links .soon small { font-size: 11px; margin-left: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.resource { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px 0 15px; border-radius: 999px; font-size: 14.5px; font-weight: 600; line-height: 1; text-decoration: none; }
+.resource svg { width: 17px; height: 17px; flex: none; }
+.resource-links a.resource { background: var(--ink); color: #fff; border: 1px solid var(--ink); box-shadow: 0 1px 2px rgb(23 25 30 / .12); transition: background .18s, border-color .18s, box-shadow .18s, transform .18s; }
+.resource .go { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: -6px; border-radius: 50%; background: rgb(255 255 255 / .14); transition: background .18s; }
+.resource .go svg { width: 13px; height: 13px; transition: transform .18s; }
+.resource-links a.resource:hover { background: var(--accent); border-color: var(--accent); box-shadow: 0 6px 18px -6px rgb(28 107 95 / .55); transform: translateY(-1px); }
+.resource-links a.resource:hover .go { background: rgb(255 255 255 / .22); }
+.resource-links a.resource:hover .go svg { transform: translate(1.5px, -1.5px); }
+.resource-links a.resource:active { background: var(--accent-ink); transform: none; box-shadow: 0 1px 2px rgb(23 25 30 / .12); }
+.resource-links .soon { background: var(--soft); color: var(--muted); border: 1px dashed #d3d3ce; font-weight: 500; cursor: default; user-select: none; }
+.resource-links .soon svg { opacity: .7; }
+.resource-links .soon small { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 4px 7px; margin-right: -8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
 
 @media (min-width: 960px) {
   .hero h1 { white-space: nowrap; }

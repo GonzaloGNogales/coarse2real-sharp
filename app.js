@@ -10,7 +10,11 @@ const icons = {
   play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
   expand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></svg>',
   prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
-  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
+  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+  paper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>',
+  code:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>',
+  weights:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>',
+  external:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 16L16 8M9 8h7v7"/></svg>'
 };
 let config = {method:'C2R#', modalities:{}};
 
@@ -440,10 +444,10 @@ function renderHeader() {
     $$('.paper-id').forEach(node => node.remove());
   }
   // Links without a URL yet are shown as non-clickable "Coming soon" placeholders.
-  const links = [['paperUrl','arXiv'],['codeUrl','Code'],['weightsUrl','Model weights']];
-  $('#resource-links').innerHTML = links.map(([key, label]) => config[key]
-    ? `<a href="${escapeHTML(config[key])}" target="_blank" rel="noopener">${label}</a>`
-    : `<span class="soon" aria-disabled="true">${label} <small>Coming soon</small></span>`).join('');
+  const links = [['paperUrl','arXiv','paper'],['codeUrl','Code','code'],['weightsUrl','Model weights','weights']];
+  $('#resource-links').innerHTML = links.map(([key, label, icon]) => config[key]
+    ? `<a class="resource" href="${escapeHTML(config[key])}" target="_blank" rel="noopener">${icons[icon]}<span>${label}</span><span class="go">${icons.external}</span></a>`
+    : `<span class="resource soon" aria-disabled="true">${icons[icon]}<span>${label}</span><small>Coming soon</small></span>`).join('');
 }
 const byBundle = group => bundles.map(b => ({...b, items: group[b.key] ?? []})).filter(g => g.items.length);
 const resultCard = record => `<article class="card">${mediaHTML(record)}${promptHTML(record)}</article>`;
